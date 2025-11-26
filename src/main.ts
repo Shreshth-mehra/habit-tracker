@@ -423,10 +423,6 @@ class HabitTrackerSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		// Troubleshooting Section
-		const troubleshootingHeader = containerEl.createEl('h4', {text: 'Troubleshooting'});
-		troubleshootingHeader.style.marginTop = '30px';
-
 		new Setting(containerEl)
 			.setName('Percentage for perfect days')
 			.setDesc('Percentage threshold for perfect days (0-100). A day is perfect if at least this percentage of habits have entries.')

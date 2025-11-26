@@ -50,7 +50,7 @@ div:has(.block-language-habittracker) {
 	left: var(--habit-name-padding);
 	right: var(--habit-name-padding);
 	background: var(--background-secondary);
-	border: var(--habit-border)
+	border: var(--habit-border);
 	border-radius: 0 0 var(--radius-s) var(--radius-s);
 	padding: var(--habit-name-padding);
 	justify-content: space-between;
@@ -168,10 +168,6 @@ div:has(.block-language-habittracker) {
 	background-color: var(--habit-bg);
 }
 
-.is-readable-line-width .habit-tracker--match-line-length {
-	max-width: 100%;
-	width: var(--file-line-width);
-}
 
 .habit-tracker__row {
 	display: contents;
@@ -329,7 +325,7 @@ div:has(.block-language-habittrackermetrics) {
 .block-language-habittrackermetrics {
 	border: var(--habit-outer-border);
 	border-radius: var(--radius-s);
-	overflow-x: auto;
+	overflow-x: scroll;
 	width: fit-content;
 	max-width: 100%;
 	scrollbar-width: thin;

@@ -23,6 +23,7 @@
 		lastDisplayedDate: string
 		daysToShow: number
 		debug: boolean
+		matchLineLength: boolean
 	}
 
 	interface HabitData {
@@ -80,6 +81,7 @@
 		daysToShow: number
 		debug: boolean
 		perfectDayPercentage: number
+		matchLineLength: boolean
 	}
 	export let userSettings: Partial<{
 		path: string
@@ -87,6 +89,7 @@
 		daysToShow: number
 		debug: boolean
 		perfectDayPercentage: number
+		matchLineLength: boolean
 	}>
 
 	// Default settings
@@ -95,6 +98,7 @@
 		lastDisplayedDate: getDateAsString(new Date()),
 		daysToShow: globalSettings.daysToShow,
 		debug: globalSettings.debug,
+		matchLineLength: globalSettings.matchLineLength,
 	})
 
 	// Initialize unified state
@@ -129,6 +133,10 @@
 			daysToShow: userSettings.daysToShow || state.settings.daysToShow,
 			lastDisplayedDate:
 				userSettings.lastDisplayedDate || state.settings.lastDisplayedDate,
+			matchLineLength:
+				userSettings.matchLineLength !== undefined
+					? userSettings.matchLineLength
+					: state.settings.matchLineLength,
 			debug:
 				userSettings.debug !== undefined
 					? userSettings.debug

@@ -14,7 +14,6 @@ A new markdown codeblock processor that displays habit metrics in a table format
 
 Added a global setting `perfectDayPercentage` (default: 60) that determines the threshold for what constitutes a "perfect day". A perfect day is when at least this percentage of habits have entries on the same date.
 
-- **Location**: Plugin Settings → General Settings
 - **Range**: 0-100
 - **Default**: 60
 - **Usage**: Can be overridden per codeblock using `perfectDayPercentage` in the codeblock JSON
@@ -128,6 +127,7 @@ All parameters from `habittracker` are supported:
    - Added styles for `.habit-tracker-metrics` and related classes
    - Matches existing habit tracker design language
    - Responsive table layout with sticky first column
+   - Removed width constraint from `.habit-tracker--match-line-length` to ensure consistent width behavior between both codeblocks
 
 ### Key Algorithms
 
@@ -152,6 +152,8 @@ All parameters from `habittracker` are supported:
 3. **Error Handling**: Mirrors existing error handling for consistency
 4. **Settings Inheritance**: Supports both global and per-codeblock settings
 5. **Date Range Logic**: Uses earlier of displayed start or entry start for displayed metrics
+6. **Width Consistency**: Both `habittracker` and `habittrackermetrics` codeblocks now have consistent width behavior. I have adjusted the normal line width in my obsidian from 40 to 55. habittracker codeblock did not take up the full space.
+
 
 ## Examples
 
