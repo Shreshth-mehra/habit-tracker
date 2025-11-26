@@ -315,3 +315,95 @@ div:has(.block-language-habittracker) {
 	content: attr(streak);
 	font-weight: bold;
 }
+
+/* Habit Tracker Metrics Styles */
+div:has(.block-language-habittrackermetrics) {
+	/* Reuse existing habit tracker color variables */
+	--habit-metrics-bg: var(--background-primary);
+	--habit-metrics-border: var(--habit-border);
+	--habit-metrics-header-bg: var(--background-secondary);
+	--habit-metrics-cell-padding: 8px;
+	--habit-metrics-name-text-color: var(--link-color);
+}
+
+.block-language-habittrackermetrics {
+	border: var(--habit-outer-border);
+	border-radius: var(--radius-s);
+	overflow-x: auto;
+	width: fit-content;
+	max-width: 100%;
+	scrollbar-width: thin;
+}
+
+.habit-tracker-metrics {
+	background-color: var(--habit-metrics-bg);
+	width: fit-content;
+	max-width: 100%;
+}
+
+.habit-tracker-metrics__table {
+	border-collapse: collapse;
+	width: 100%;
+	font-size: var(--habit-name-font-size);
+}
+
+.habit-tracker-metrics__cell {
+	padding: var(--habit-metrics-cell-padding);
+	border: var(--habit-metrics-border);
+	text-align: left;
+}
+
+.habit-tracker-metrics__cell--header {
+	background-color: var(--habit-metrics-header-bg);
+	font-weight: 600;
+	font-size: var(--habit-header-font-size);
+	white-space: nowrap;
+}
+
+.habit-tracker-metrics__cell--name {
+	position: sticky;
+	left: 0;
+	background-color: var(--habit-highlight-names);
+	min-width: var(--habit-name-max-width);
+	max-width: var(--habit-name-max-width);
+}
+
+.habit-tracker-metrics__cell--name .internal-link {
+	color: var(--habit-name-text-color);
+	font-size: var(--habit-name-font-size);
+	text-decoration: none;
+	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.habit-tracker-metrics__cell--number {
+	text-align: center;
+	white-space: nowrap;
+}
+
+.habit-tracker-metrics__table tbody tr:hover {
+	background-color: var(--habit-row-bg-hover);
+}
+
+.habit-tracker-metrics__perfect-days {
+	margin-top: 16px;
+	padding: var(--habit-metrics-cell-padding);
+	border-top: var(--habit-metrics-border);
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.habit-tracker-metrics__perfect-days-item {
+	font-size: var(--habit-name-font-size);
+	color: var(--text-normal);
+}
+
+.habit-tracker-metrics__perfect-days-threshold {
+	color: var(--text-normal);
+	font-size: var(--habit-name-font-size);
+	margin-bottom: 8px;
+}

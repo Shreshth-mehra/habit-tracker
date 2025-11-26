@@ -2,6 +2,8 @@
 import {Plugin, Notice, setIcon, App, PluginSettingTab, Setting} from 'obsidian'
 import HabitTracker from './HabitTracker.svelte'
 import HabitTrackerError from './HabitTrackerError.svelte'
+import HabitTrackerMetrics from './HabitTrackerMetrics.svelte'
+import HabitTrackerMetricsError from './HabitTrackerMetricsError.svelte'
 import { debugLog, renderPrettyDate, isValidCSSColor } from './utils'
 
 	import {
@@ -15,6 +17,7 @@ interface HabitTrackerSettings {
 	matchLineLength: boolean;
 	defaultColor: string;
 	showStreaks: boolean;
+	perfectDayPercentage: number;
 }
 
 const DEFAULT_SETTINGS: HabitTrackerSettings = {
@@ -23,7 +26,8 @@ const DEFAULT_SETTINGS: HabitTrackerSettings = {
 	debug: false,
 	matchLineLength: true,
 	defaultColor: '',
-	showStreaks: true
+	showStreaks: true,
+	perfectDayPercentage: 60
 }
 
 export default class HabitTracker21 extends Plugin {
@@ -58,6 +62,40 @@ export default class HabitTracker21 extends Plugin {
 					})
 			} catch(error) {
 				new HabitTrackerError({
+					target: el,
+					props: {
+						error,
+						src,
+						pluginName: this.manifest.name,
+						app: this.app,
+						globalSettings: this.settings
+					}
+				})
+				console.error(`[${this.manifest.name}] Received invalid settings. ${error}`)
+			}
+		})
+
+		this.registerMarkdownCodeBlockProcessor('habittrackermetrics', async (src, el) => {
+			debugLog('Loading metrics', 1)
+
+			let userSettings: Partial<HabitTrackerSettings> = {}
+			try {
+				userSettings = JSON.parse(src);
+				const debugMode = this.settings.debug || userSettings.debug;
+				debugLog(`Global settings: ${JSON.stringify(this.settings)}`, debugMode);
+				debugLog(`Metrics settings: ${JSON.stringify(userSettings)}`, debugMode);
+				debugLog(`Today is ${format(new Date(), 'yyyy-MM-dd')}`, debugMode);
+				new HabitTrackerMetrics({
+						target: el,
+						props: {
+							app: this.app,
+							userSettings,
+							globalSettings: this.settings,
+							pluginName: this.manifest.name,
+						},
+					})
+			} catch(error) {
+				new HabitTrackerMetricsError({
 					target: el,
 					props: {
 						error,
@@ -388,6 +426,29 @@ class HabitTrackerSettingTab extends PluginSettingTab {
 		// Troubleshooting Section
 		const troubleshootingHeader = containerEl.createEl('h4', {text: 'Troubleshooting'});
 		troubleshootingHeader.style.marginTop = '30px';
+
+		new Setting(containerEl)
+			.setName('Percentage for perfect days')
+			.setDesc('Percentage threshold for perfect days (0-100). A day is perfect if at least this percentage of habits have entries.')
+			.addText(text => text
+				.setValue(this.plugin.settings.perfectDayPercentage.toString())
+				.onChange(async (value) => {
+					const numValue = parseInt(value);
+					if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+						this.plugin.settings.perfectDayPercentage = numValue;
+						await this.plugin.saveSettings();
+					}
+				}))
+			.then(setting => {
+				// Add number input attributes
+				const inputEl = setting.controlEl.querySelector('input') as HTMLInputElement;
+				if (inputEl) {
+					inputEl.type = 'number';
+					inputEl.min = '0';
+					inputEl.max = '100';
+					inputEl.step = '1';
+				}
+			});
 
 		new Setting(containerEl)
 			.setName('Debug mode')
