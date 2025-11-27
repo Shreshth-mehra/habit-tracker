@@ -56,6 +56,10 @@
 		matchLineLength: boolean
 		defaultColor: string
 		showStreaks: boolean
+	streakFreezeDays: number
+	streakFreezeEmoji: string
+	maxFreezesPerWeek: number
+	freezePenalty: number
 	}
 	export let userSettings: Partial<{
 		path: string

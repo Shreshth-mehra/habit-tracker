@@ -18,6 +18,10 @@ interface HabitTrackerSettings {
 	defaultColor: string;
 	showStreaks: boolean;
 	perfectDayPercentage: number;
+	streakFreezeDays: number;
+	streakFreezeEmoji: string;
+	maxFreezesPerWeek: number;
+	freezePenalty: number;
 }
 
 const DEFAULT_SETTINGS: HabitTrackerSettings = {
@@ -27,7 +31,11 @@ const DEFAULT_SETTINGS: HabitTrackerSettings = {
 	matchLineLength: true,
 	defaultColor: '',
 	showStreaks: true,
-	perfectDayPercentage: 60
+	perfectDayPercentage: 60,
+	streakFreezeDays: 0,
+	streakFreezeEmoji: '❄️',
+	maxFreezesPerWeek: 0,
+	freezePenalty: 0,
 }
 
 export default class HabitTracker21 extends Plugin {
@@ -422,6 +430,81 @@ class HabitTrackerSettingTab extends PluginSettingTab {
 					this.plugin.settings.matchLineLength = value;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName('Streak freeze days')
+			.setDesc('Maximum number of missed days that keep a streak frozen. Can be overridden per habit using the "streak_freeze" frontmatter property.')
+			.addText(text => text
+				.setValue(this.plugin.settings.streakFreezeDays.toString())
+				.onChange(async (value) => {
+					const numValue = parseInt(value);
+					if (!isNaN(numValue) && numValue >= 0) {
+						this.plugin.settings.streakFreezeDays = numValue;
+						await this.plugin.saveSettings();
+					}
+				}))
+			.then(setting => {
+				const inputEl = setting.controlEl.querySelector('input') as HTMLInputElement;
+				if (inputEl) {
+					inputEl.type = 'number';
+					inputEl.min = '0';
+					inputEl.step = '1';
+				}
+			});
+
+		new Setting(containerEl)
+			.setName('Streak freeze emoji')
+			.setDesc('Emoji shown on days that are frozen by the streak freeze rule.')
+			.addText(text => text
+				.setValue(this.plugin.settings.streakFreezeEmoji)
+				.setPlaceholder('❄️')
+				.onChange(async (value) => {
+					const trimmed = value.trim();
+					this.plugin.settings.streakFreezeEmoji = trimmed || '❄️';
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Max freezes per week')
+			.setDesc('Maximum number of frozen days allowed inside any 7-day window (0 = unlimited).')
+			.addText(text => text
+				.setValue(this.plugin.settings.maxFreezesPerWeek.toString())
+				.onChange(async (value) => {
+					const numValue = parseInt(value);
+					if (!isNaN(numValue) && numValue >= 0) {
+						this.plugin.settings.maxFreezesPerWeek = numValue;
+						await this.plugin.saveSettings();
+					}
+				}))
+			.then(setting => {
+				const inputEl = setting.controlEl.querySelector('input') as HTMLInputElement;
+				if (inputEl) {
+					inputEl.type = 'number';
+					inputEl.min = '0';
+					inputEl.step = '1';
+				}
+			});
+
+		new Setting(containerEl)
+			.setName('Freeze penalty')
+			.setDesc('How many streak points to subtract per frozen day when the streak resumes (0 = no penalty).')
+			.addText(text => text
+				.setValue(this.plugin.settings.freezePenalty.toString())
+				.onChange(async (value) => {
+					const numValue = parseFloat(value);
+					if (!isNaN(numValue) && numValue >= 0) {
+						this.plugin.settings.freezePenalty = numValue;
+						await this.plugin.saveSettings();
+					}
+				}))
+			.then(setting => {
+				const inputEl = setting.controlEl.querySelector('input') as HTMLInputElement;
+				if (inputEl) {
+					inputEl.type = 'number';
+					inputEl.min = '0';
+					inputEl.step = '0.1';
+				}
+			});
 
 		new Setting(containerEl)
 			.setName('Percentage for perfect days')

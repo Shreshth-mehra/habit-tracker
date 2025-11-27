@@ -14,6 +14,7 @@ A new markdown codeblock processor that displays habit metrics in a table format
 
 Added a global setting `perfectDayPercentage` (default: 60) that determines the threshold for what constitutes a "perfect day". A perfect day is when at least this percentage of habits have entries on the same date.
 
+- **Location**: Plugin Settings → General Settings
 - **Range**: 0-100
 - **Default**: 60
 - **Usage**: Can be overridden per codeblock using `perfectDayPercentage` in the codeblock JSON
@@ -26,11 +27,13 @@ The metrics table shows the following columns for each habit:
 - Calculates the longest consecutive streak within the displayed date range
 - Only counts days that are visible in the current view
 - If a streak continues beyond the visible range, only the visible portion is counted
+- Respects each habit's `streak_freeze` window, `max_freezes` per week cap, and `freeze_penalty`, so only eligible frozen gaps preserve the streak and any penalty is deducted when the streak resumes
 
 #### Longest Streak (Ever)
 - Calculates the longest consecutive streak across all entries in the habit file
 - Not limited to the displayed date range
 - Provides a historical view of your best streak
+- Honors `streak_freeze` / `max_freezes` / `freeze_penalty` so frozen gaps only continue the streak when they meet all constraints and apply the appropriate penalty
 
 #### Total Days (Displayed)
 - Shows: `entries_in_range / total_days_in_range`
@@ -113,21 +116,18 @@ All parameters from `habittracker` are supported:
 ### Modified Files
 
 1. **`src/main.ts`**
-   - Added `perfectDayPercentage` to `HabitTrackerSettings` interface
-   - Added setting UI in `HabitTrackerSettingTab`
-   - Registered new `habittrackermetrics` codeblock processor
+   - Added `perfectDayPercentage`, `streakFreezeDays`, `streakFreezeEmoji`, `maxFreezesPerWeek`, and `freezePenalty` to `HabitTrackerSettings`
+   - Exposed corresponding controls in `HabitTrackerSettingTab`
+   - Registered the `habittrackermetrics` codeblock processor
 
 2. **`src/utils.js`**
-   - Added `calculateLongestStreakInRange()`: Calculates streaks within a date range
-   - Added `calculateLongestStreakEver()`: Calculates longest streak across all entries
-   - Added `calculateTotalDaysMetric()`: Calculates total days metrics (ever and displayed)
-   - Added `calculatePerfectDays()`: Calculates perfect days statistics
+   - Added freeze-aware helpers: `calculateLongestStreakInRange()`, `calculateLongestStreakEver()`, `calculateTotalDaysMetric()`, `calculatePerfectDays()`
+   - Implemented shared freeze utilities (`computeFreezeDates`, `isGapFrozen`, `countFrozenDays`, `resolveMaxFreezesPerWeek`, `resolveFreezePenalty`, etc.)
 
 3. **`styles.css`**
    - Added styles for `.habit-tracker-metrics` and related classes
    - Matches existing habit tracker design language
    - Responsive table layout with sticky first column
-   - Removed width constraint from `.habit-tracker--match-line-length` to ensure consistent width behavior between both codeblocks
 
 ### Key Algorithms
 
@@ -137,8 +137,8 @@ All parameters from `habittracker` are supported:
 - Counts dates where at least threshold number of habits have entries
 
 #### Streak Calculation
-- **In Range**: Iterates through date range, counts consecutive days with entries
-- **Ever**: Sorts all entries, finds longest sequence of consecutive dates
+- **In Range**: Iterates through date range, counts consecutive days with entries, and treats gaps as frozen only if (a) they are within `streak_freeze`, (b) they do not exceed the `max_freezes` allowance inside any rolling 7-day window, and (c) applies `freeze_penalty × frozen_days` before resuming the streak
+- **Ever**: Sorts all entries, finds longest sequence of consecutive dates, applying the same freeze duration, weekly limit, and penalty rules
 
 #### Total Days Calculation
 - **Displayed**: Uses earlier of (oldest displayed date, earliest entry) to end of displayed range
@@ -152,8 +152,6 @@ All parameters from `habittracker` are supported:
 3. **Error Handling**: Mirrors existing error handling for consistency
 4. **Settings Inheritance**: Supports both global and per-codeblock settings
 5. **Date Range Logic**: Uses earlier of displayed start or entry start for displayed metrics
-6. **Width Consistency**: Both `habittracker` and `habittrackermetrics` codeblocks now have consistent width behavior. I have adjusted the normal line width in my obsidian from 40 to 55. habittracker codeblock did not take up the full space.
-
 
 ## Examples
 

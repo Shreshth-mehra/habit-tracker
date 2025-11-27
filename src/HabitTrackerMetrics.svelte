@@ -1,5 +1,11 @@
 <script lang="ts">
-	import {debugLog, pluralize} from './utils'
+	import {
+		debugLog,
+		pluralize,
+		resolveStreakFreezeDays,
+		resolveMaxFreezesPerWeek,
+		resolveFreezePenalty,
+	} from './utils'
 	import {onMount, onDestroy} from 'svelte'
 	import {
 		calculateLongestStreakInRange,
@@ -23,7 +29,6 @@
 		lastDisplayedDate: string
 		daysToShow: number
 		debug: boolean
-		matchLineLength: boolean
 	}
 
 	interface HabitData {
@@ -32,6 +37,9 @@
 		entries: string[]
 		name: string
 		path: string
+		freezeDays: number
+		maxFreezes: number
+		freezePenalty: number
 	}
 
 	interface HabitMetrics {
@@ -39,7 +47,7 @@
 		path: string
 		longestStreakDisplayed: number
 		longestStreakEver: number
-		totalDays: {
+		completedDays: {
 			ever: {
 				fraction: string
 				percentage: string
@@ -81,7 +89,10 @@
 		daysToShow: number
 		debug: boolean
 		perfectDayPercentage: number
-		matchLineLength: boolean
+	streakFreezeDays: number
+	streakFreezeEmoji: string
+	maxFreezesPerWeek: number
+	freezePenalty: number
 	}
 	export let userSettings: Partial<{
 		path: string
@@ -89,7 +100,6 @@
 		daysToShow: number
 		debug: boolean
 		perfectDayPercentage: number
-		matchLineLength: boolean
 	}>
 
 	// Default settings
@@ -98,7 +108,6 @@
 		lastDisplayedDate: getDateAsString(new Date()),
 		daysToShow: globalSettings.daysToShow,
 		debug: globalSettings.debug,
-		matchLineLength: globalSettings.matchLineLength,
 	})
 
 	// Initialize unified state
@@ -133,10 +142,6 @@
 			daysToShow: userSettings.daysToShow || state.settings.daysToShow,
 			lastDisplayedDate:
 				userSettings.lastDisplayedDate || state.settings.lastDisplayedDate,
-			matchLineLength:
-				userSettings.matchLineLength !== undefined
-					? userSettings.matchLineLength
-					: state.settings.matchLineLength,
 			debug:
 				userSettings.debug !== undefined
 					? userSettings.debug
@@ -208,17 +213,25 @@
 		state.computed.metrics = state.computed.habits.map(habit => {
 			const longestStreakDisplayed = calculateLongestStreakInRange(
 				habit.entries,
-				state.computed.dates
+				state.computed.dates,
+				habit.freezeDays,
+				habit.maxFreezes,
+				habit.freezePenalty
 			)
-			const longestStreakEver = calculateLongestStreakEver(habit.entries)
-			const totalDays = calculateTotalDaysMetric(habit.entries, state.computed.dates)
+			const longestStreakEver = calculateLongestStreakEver(
+				habit.entries,
+				habit.freezeDays,
+				habit.maxFreezes,
+				habit.freezePenalty,
+			)
+			const completedDays = calculateTotalDaysMetric(habit.entries, state.computed.dates)
 
 			return {
 				name: habit.name,
 				path: habit.path,
 				longestStreakDisplayed,
 				longestStreakEver,
-				totalDays
+				completedDays
 			}
 		})
 
@@ -310,11 +323,17 @@
 			
 			let entries: string[] = []
 			let name = file.basename
+			let freezeDays = globalSettings.streakFreezeDays
+			let maxFreezes = globalSettings.maxFreezesPerWeek
+			let freezePenalty = globalSettings.freezePenalty
 
 			if (frontmatterMatch) {
 				const frontmatter = parseYaml(frontmatterMatch[1])
 				entries = frontmatter?.entries || []
 				name = frontmatter?.title || name
+				freezeDays = resolveStreakFreezeDays(frontmatter?.streak_freeze, freezeDays)
+				maxFreezes = resolveMaxFreezesPerWeek(frontmatter?.max_freezes, maxFreezes)
+				freezePenalty = resolveFreezePenalty(frontmatter?.freeze_penalty, freezePenalty)
 			}
 
 			// Sort entries
@@ -324,7 +343,10 @@
 				file,
 				entries,
 				name,
-				path: file.path
+				path: file.path,
+				freezeDays,
+				maxFreezes,
+				freezePenalty,
 			}
 		} catch (error) {
 			debugLog(
@@ -387,8 +409,8 @@
 					<th class="habit-tracker-metrics__cell habit-tracker-metrics__cell--header">Habit</th>
 					<th class="habit-tracker-metrics__cell habit-tracker-metrics__cell--header">Longest Streak (Displayed)</th>
 					<th class="habit-tracker-metrics__cell habit-tracker-metrics__cell--header">Longest Streak (Ever)</th>
-					<th class="habit-tracker-metrics__cell habit-tracker-metrics__cell--header">Total Days (Displayed)</th>
-					<th class="habit-tracker-metrics__cell habit-tracker-metrics__cell--header">Total Days (Ever)</th>
+					<th class="habit-tracker-metrics__cell habit-tracker-metrics__cell--header">Completed Days (Displayed)</th>
+					<th class="habit-tracker-metrics__cell habit-tracker-metrics__cell--header">Completed Days (Ever)</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -407,10 +429,10 @@
 							{metric.longestStreakEver}
 						</td>
 						<td class="habit-tracker-metrics__cell habit-tracker-metrics__cell--number">
-							{metric.totalDays.displayed.fraction} ({metric.totalDays.displayed.percentage})
+							{metric.completedDays.displayed.fraction} ({metric.completedDays.displayed.percentage})
 						</td>
 						<td class="habit-tracker-metrics__cell habit-tracker-metrics__cell--number">
-							{metric.totalDays.ever.fraction} ({metric.totalDays.ever.percentage})
+							{metric.completedDays.ever.fraction} ({metric.completedDays.ever.percentage})
 						</td>
 					</tr>
 				{/each}

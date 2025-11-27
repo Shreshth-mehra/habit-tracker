@@ -70,6 +70,22 @@ Examples:
 
 Invalid colors are ignored and the default theme color is used.
 
+### Streak Freeze (per habit)
+
+Keep streaks alive even when you miss a day or two. Add `streak_freeze` to a habit’s frontmatter to override the global freeze window, `max_freezes` to limit how many frozen days are allowed inside any rolling 7-day window, and `freeze_penalty` to define how much the streak count drops per frozen day when you resume:
+
+```markdown
+---
+title: "Morning Workout 💪"
+streak_freeze: 2
+max_freezes: 2
+freeze_penalty: 0.5
+entries: []
+---
+```
+
+If a file omits these properties, the plugin falls back to the values configured in the settings tab. Frozen days only appear once a later entry confirms the gap stayed within these limits, and the streak resumes after applying any freeze penalty (e.g., with `freeze_penalty: 1`, a 7-day streak that pauses for one frozen day restarts at 7 instead of 8).
+
 ## Configuration
 
 ### Global Settings
@@ -80,6 +96,10 @@ Access via **Settings > Community plugins > Habit Tracker** to set defaults for 
 - **Days to Show** - Number input (default: 21)
 - **Debug Mode** - Toggle debug output on/off
 - **Match Line Length** - Fit tracker to readable line width
+- **Streak Freeze Days** - Number of missed days allowed before a streak resets (default: 0)
+- **Streak Freeze Emoji** - Emoji rendered on frozen days (default: ❄️)
+- **Max Freezes per Week** - Caps how many frozen days you get within any 7-day span (default: 0 = unlimited)
+- **Freeze Penalty** - How many streak points to subtract per frozen day when the streak resumes (default: 0)
 
 ### Per-Tracker Settings
 
@@ -108,6 +128,10 @@ Override global settings in individual code blocks:
 | `showStreaks`       | boolean | true    | Display streak indicators and counts                                             |
 | `debug`             | boolean | false   | Enable debug console output                                                      |
 | `matchLineLength`   | boolean | false   | Match readable line width                                                        |
+| `streakFreezeDays`  | number  | 0       | Days of absence that can be frozen before a streak resets                        |
+| `streakFreezeEmoji` | string  | ❄️      | Emoji used for frozen days                                                       |
+| `maxFreezesPerWeek` | number  | 0       | Maximum frozen days allowed inside any rolling 7-day window (0 = unlimited)      |
+| `freezePenalty`     | number  | 0       | Streak points removed per frozen day when the streak resumes                     |
 
 ## Usage Examples
 
